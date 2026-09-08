@@ -56,8 +56,10 @@ export default function App() {
   const [prompt, setPrompt] = useState('');
   const [showCreateFormats, setShowCreateFormats] = useState(false);
   const promptInputRef = useRef(null);
+  const chatRequestRef = useRef(null);
   const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [chatError, setChatError] = useState('');
   const [showWaterBoy3D, setShowWaterBoy3D] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState(() => {
     try {
@@ -178,19 +180,24 @@ export default function App() {
     e.preventDefault();
     if (!prompt.trim()) return;
 
+    const submittedPrompt = prompt.trim();
+    chatRequestRef.current?.abort();
+    chatRequestRef.current = new AbortController();
+    setChatError('');
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: submittedPrompt }),
+        signal: chatRequestRef.current.signal,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to generate text');
       setChatLog((currentLogs) => [
         {
           id: `local-${Date.now()}`,
-          user_prompt: prompt,
+          user_prompt: submittedPrompt,
           ai_response: data.reply,
           action_type: 'chat',
         },
@@ -199,10 +206,24 @@ export default function App() {
       speak(data.reply);
       setPrompt('');
     } catch (err) {
+      if (err.name !== 'AbortError') setChatError(err.message || 'The assistant could not respond. Try again.');
       console.error('Chat request failed:', err);
     } finally {
       setLoading(false);
+      chatRequestRef.current = null;
     }
+  };
+
+  const stopChat = () => {
+    chatRequestRef.current?.abort();
+    setLoading(false);
+  };
+
+  const resizePrompt = (event) => {
+    const input = event.currentTarget;
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 150)}px`;
+    setPrompt(input.value);
   };
 
   const openCreateFormats = () => {
@@ -280,11 +301,11 @@ export default function App() {
               <div className="section-heading"><div><p className="eyebrow">NEURAL INTAKE</p><h2>What are we making today?</h2></div><div className="conversation-tools"><button type="button" className={`robot-button ${showCreateFormats ? 'is-open' : ''}`} onClick={openCreateFormats} aria-label="Open create formats" title="Open create formats"><span className="robot-antenna" /><span className="robot-eyes"><i /><i /></span><span className="robot-mouth" /></button><span className="command-hint">⌘ ↵</span></div></div>
               {showCreateFormats && <div className="create-formats"><span>CREATE FORMAT</span><button type="button" onClick={() => useCreateFormat('Write a clear plan for ')}>Plan</button><button type="button" onClick={() => useCreateFormat('Draft a professional message about ')}>Draft</button><button type="button" onClick={() => useCreateFormat('Brainstorm creative ideas for ')}>Ideas</button><button type="button" className="close-formats" onClick={() => setShowCreateFormats(false)} aria-label="Close create formats">×</button></div>}
               <form onSubmit={handleSendChat} className="composer-form">
-            <input
-              type="text"
+            <textarea
               ref={promptInputRef}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              onChange={resizePrompt}
+              rows="1"
               placeholder="Ask, create, plan, or explore..."
               className="composer-input"
             />
@@ -299,16 +320,18 @@ export default function App() {
               {isListening ? '●' : '◉'}
             </button>
             <button
-              type="submit"
-              disabled={loading}
-              className="send-button"
+              type={loading ? 'button' : 'submit'}
+              onClick={loading ? stopChat : undefined}
+              disabled={!loading && !prompt.trim()}
+              className={`send-button ${loading ? 'is-stopping' : ''}`}
             >
-              {loading ? 'Thinking' : 'Send'} <span className="send-glyph" aria-hidden="true" />
+              {loading ? 'Stop' : 'Send'} <span className={loading ? 'stop-glyph' : 'send-glyph'} aria-hidden="true" />
             </button>
           </form>
               {voiceError && <p className="form-message error-message">{voiceError}</p>}
+              {chatError && <p className="form-message error-message"><strong>Response failed.</strong> {chatError}</p>}
             </section>
-            <section className="thread-panel"><div className="thread-heading"><p className="eyebrow">LIVE THREAD</p><span>{chatLog.length} {chatLog.length === 1 ? 'exchange' : 'exchanges'}</span></div>{chatLog.length === 0 && <div className="empty-thread"><span className="empty-icon">✦</span><p>Your conversations will appear here.</p><small>Start with a question, a rough idea, or a task.</small></div>}<div className="thread-list">{chatLog.map((log) => <article key={log.id} className="exchange"><div className="exchange-prompt"><span className="avatar user-avatar">YOU</span><div><span className="message-label">PROMPT</span><p>{log.user_prompt}</p></div></div><div className="exchange-answer"><span className="avatar ai-avatar">T</span><div><span className="message-label answer-label">TOXIC / RESPONSE</span><p>{log.ai_response}</p></div></div></article>)}</div></section>
+            <section className="thread-panel"><div className="thread-heading"><p className="eyebrow">LIVE THREAD</p><span>{chatLog.length} {chatLog.length === 1 ? 'exchange' : 'exchanges'}</span></div>{chatLog.length === 0 && !loading && <div className="empty-thread"><span className="empty-icon">✦</span><p>Your conversations will appear here.</p><small>Start with a question, a rough idea, or a task.</small></div>}{loading && <div className="response-skeleton" aria-label="Toxic AI is thinking"><span className="avatar ai-avatar">T</span><div className="skeleton-lines"><i /><i /><i /></div></div>}<div className="thread-list">{chatLog.map((log) => <article key={log.id} className="exchange"><div className="exchange-prompt"><span className="avatar user-avatar">YOU</span><div><span className="message-label">PROMPT</span><p>{log.user_prompt}</p></div></div><div className="exchange-answer"><span className="avatar ai-avatar">T</span><div><span className="message-label answer-label">TOXIC / RESPONSE</span><p>{log.ai_response}</p></div></div></article>)}</div></section>
           </div>
           <aside className="side-column">
             <section className="tool-panel panel"><div className="section-heading compact"><div><p className="eyebrow">AUTOMATION / 02</p><h2>Send an email</h2></div><span className="tool-number">02</span></div>
