@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import WaterBoy3D from './components/WaterBoy3D';
+import Supercar3D from './components/Supercar3D';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
@@ -258,7 +259,7 @@ export default function App() {
       <main className="workspace">
         <section className="hero-panel">
           <div className="hero-copy"><p className="eyebrow">AI OPERATIONS / 01</p><h1>Turn ideas into<br /><em>momentum.</em></h1><p className="hero-description">A focused AI workspace for thinking clearly, moving quickly, and getting meaningful work out the door.</p></div>
-          <div className="core-stage" aria-label="Animated 3D assistant core"><div className="core-grid" /><div className="core-orbit orbit-one" /><div className="core-orbit orbit-two" /><div className="core-orb"><span className="core-glow" /></div><div className="core-label">TOXIC CORE <span>ACTIVE</span></div></div>
+          <Supercar3D />
         </section>
         <div className="content-grid">
           <div className="primary-column">
