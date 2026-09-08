@@ -225,18 +225,52 @@ export default function App() {
       ...currentLogs,
     ]);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/chat`, {
+      const res = await fetch(`${API_BASE_URL}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: submittedPrompt }),
         signal: chatRequestRef.current.signal,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate text');
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to generate text');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let streamedText = '';
+      let completedText = '';
+
+      const applyStreamEvent = (eventText) => {
+        const dataLine = eventText.split('\n').find((line) => line.startsWith('data: '));
+        if (!dataLine) return;
+        const data = JSON.parse(dataLine.slice(6));
+        if (data.error) throw new Error(data.error);
+        if (data.text) {
+          if (data.done) completedText = data.text;
+          else streamedText += data.text;
+          const visibleText = cleanResponse(completedText || streamedText);
+          setChatLog((currentLogs) => currentLogs.map((log) => (
+            log.id === optimisticId ? { ...log, ai_response: visibleText, pending: false } : log
+          )));
+        }
+      };
+
+      while (true) {
+        const { value, done } = await reader.read();
+        buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
+        events.forEach(applyStreamEvent);
+        if (done) break;
+      }
+
+      const finalResponse = cleanResponse(completedText || streamedText);
       setChatLog((currentLogs) => currentLogs.map((log) => (
-        log.id === optimisticId ? { ...log, ai_response: cleanResponse(data.reply), pending: false } : log
+        log.id === optimisticId ? { ...log, ai_response: finalResponse, pending: false } : log
       )));
-      speak(data.reply);
+      speak(finalResponse);
       setPrompt('');
     } catch (err) {
       setChatLog((currentLogs) => currentLogs.filter((log) => log.id !== optimisticId));

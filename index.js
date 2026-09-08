@@ -76,6 +76,41 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+app.post('/api/chat/stream', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt?.trim()) return res.status(400).json({ error: 'Prompt is required' });
+
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  let fullMessage = '';
+  try {
+    const stream = await ai.models.generateContentStream({
+      model: 'gemini-3.6-flash',
+      contents: `Answer in clear, natural book-style English. Do not use markdown symbols, headings, bullets, numbered lists, asterisks, hashtags, or code formatting. Use short paragraphs and ordinary sentences. User request: ${prompt}`,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.text || '';
+      if (!text) continue;
+      fullMessage += text;
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    }
+
+    res.write(`data: ${JSON.stringify({ done: true, text: cleanAiResponse(fullMessage) })}\n\n`);
+    res.end();
+    void saveLog({ user_prompt: prompt, ai_response: cleanAiResponse(fullMessage), action_type: 'chat' });
+  } catch (error) {
+    console.error('Chat Stream Error:', error);
+    if (!res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ error: 'Failed to process chat prompt' })}\n\n`);
+      res.end();
+    }
+  }
+});
+
 // Route 2: Send Email
 app.post('/api/send-email', async (req, res) => {
   try {
