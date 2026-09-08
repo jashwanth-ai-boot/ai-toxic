@@ -244,20 +244,33 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 flex flex-col md:flex-row gap-6 font-sans">
+    <div className="app-shell">
       {showWaterBoy3D && (
         <WaterBoy3D onClose={() => setShowWaterBoy3D(false)} />
       )}
-      <div className="w-full md:w-1/2 flex flex-col gap-6">
-        <div className="bg-slate-800 p-5 rounded-xl shadow-md border border-slate-700">
-          <h2 className="text-xl font-bold mb-3 text-cyan-400">AI Assistant</h2>
-          <form onSubmit={handleSendChat} className="flex gap-2">
+      <header className="topbar">
+        <div className="brand-lockup">
+          <div className="brand-mark" aria-hidden="true"><span /></div>
+          <div><p className="brand-name">TOXIC<span> AI</span></p><p className="brand-caption">Your intelligent workbench</p></div>
+        </div>
+        <div className="topbar-status"><span className="status-dot" /> Systems online <span className="status-divider" /> v2.4</div>
+      </header>
+      <main className="workspace">
+        <section className="hero-panel">
+          <div className="hero-copy"><p className="eyebrow">AI OPERATIONS / 01</p><h1>Turn ideas into<br /><em>momentum.</em></h1><p className="hero-description">A focused AI workspace for thinking clearly, moving quickly, and getting meaningful work out the door.</p></div>
+          <div className="core-stage" aria-label="Animated 3D assistant core"><div className="core-grid" /><div className="core-orbit orbit-one" /><div className="core-orbit orbit-two" /><div className="core-orb"><span className="core-glow" /></div><div className="core-label">TOXIC CORE <span>ACTIVE</span></div></div>
+        </section>
+        <div className="content-grid">
+          <div className="primary-column">
+            <section className="composer-panel panel">
+              <div className="section-heading"><div><p className="eyebrow">CONVERSATION</p><h2>What are we making today?</h2></div><span className="command-hint">⌘ ↵</span></div>
+              <form onSubmit={handleSendChat} className="composer-form">
             <input
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ask anything or generate text..."
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"
+              placeholder="Ask, create, plan, or explore..."
+              className="composer-input"
             />
             <button
               type="button"
@@ -265,34 +278,35 @@ export default function App() {
               disabled={isListening || loading}
               aria-label={isListening ? 'Listening' : 'Use voice input'}
               title={isListening ? 'Listening...' : 'Use voice input'}
-              className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${isListening ? 'bg-rose-500 text-white' : 'bg-slate-700 text-cyan-300 hover:bg-slate-600'} disabled:cursor-not-allowed disabled:opacity-70`}
+              className={`voice-button ${isListening ? 'is-listening' : ''}`}
             >
-              {isListening ? 'Listening...' : '🎙️'}
+              {isListening ? '●' : '◉'}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition"
+              className="send-button"
             >
-              {loading ? 'Thinking...' : 'Send'}
+              {loading ? 'Thinking' : 'Send'} <span>↗</span>
             </button>
           </form>
-          {voiceError && <p className="text-xs mt-2 text-rose-300">{voiceError}</p>}
-        </div>
+              {voiceError && <p className="form-message error-message">{voiceError}</p>}
+            </section>
+            <section className="thread-panel"><div className="thread-heading"><p className="eyebrow">LIVE THREAD</p><span>{chatLog.length} {chatLog.length === 1 ? 'exchange' : 'exchanges'}</span></div>{chatLog.length === 0 && <div className="empty-thread"><span className="empty-icon">✦</span><p>Your conversations will appear here.</p><small>Start with a question, a rough idea, or a task.</small></div>}<div className="thread-list">{chatLog.map((log) => <article key={log.id} className="exchange"><div className="exchange-prompt"><span className="avatar user-avatar">YOU</span><div><span className="message-label">PROMPT</span><p>{log.user_prompt}</p></div></div><div className="exchange-answer"><span className="avatar ai-avatar">T</span><div><span className="message-label answer-label">TOXIC / RESPONSE</span><p>{log.ai_response}</p></div></div></article>)}</div></section>
+          </div>
+          <aside className="side-column">
+            <section className="tool-panel panel"><div className="section-heading compact"><div><p className="eyebrow">AUTOMATION / 02</p><h2>Send an email</h2></div><span className="tool-number">02</span></div>
 
-        <div className="bg-slate-800 p-5 rounded-xl shadow-md border border-slate-700">
-          <h2 className="text-xl font-bold mb-3 text-cyan-400">Send Automated Email</h2>
           <form onSubmit={handleSendEmail} className="flex flex-col gap-3">
-            <input type="email" placeholder="Recipient Email Address" value={emailTo} onChange={(e) => setEmailTo(e.target.value)} required className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400" />
-            <input type="text" placeholder="Subject" value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} required className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400" />
-            <textarea placeholder="Email Body Content" value={emailBody} onChange={(e) => setEmailBody(e.target.value)} rows="4" required className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"></textarea>
-            <button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold py-2 rounded-lg text-sm transition">Send Email</button>
+            <input type="email" placeholder="Recipient email" value={emailTo} onChange={(e) => setEmailTo(e.target.value)} required className="field" />
+            <input type="text" placeholder="Subject" value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} required className="field" />
+            <textarea placeholder="Write your message..." value={emailBody} onChange={(e) => setEmailBody(e.target.value)} rows="4" required className="field textarea"></textarea>
+            <button type="submit" className="action-button">Send email <span>↗</span></button>
           </form>
-          {emailStatus && <p className="text-xs mt-2 text-slate-300">{emailStatus}</p>}
-        </div>
+              {emailStatus && <p className="form-message">{emailStatus}</p>}
+            </section>
 
-        <div className="bg-slate-800 p-5 rounded-xl shadow-md border border-slate-700">
-          <h2 className="text-xl font-bold mb-3 text-cyan-400">Schedule Presentation</h2>
+            <section className="tool-panel panel"><div className="section-heading compact"><div><p className="eyebrow">PLANNING / 03</p><h2>Schedule a deliverable</h2></div><span className="tool-number">03</span></div>
           <form onSubmit={handleScheduleTask} className="flex flex-col gap-3">
             <input
               type="text"
@@ -300,25 +314,25 @@ export default function App() {
               onChange={(e) => setTaskTitle(e.target.value)}
               placeholder="Task or deliverable"
               required
-              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"
+              className="field"
             />
             <input
               type="datetime-local"
               value={taskDeadline}
               onChange={(e) => setTaskDeadline(e.target.value)}
               required
-              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"
+              className="field"
             />
-            <button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold py-2 rounded-lg text-sm transition">
-              Schedule Task
+            <button type="submit" className="action-button">
+              Add to schedule <span>+</span>
             </button>
           </form>
           {scheduledTasks.length > 0 && (
             <div className="mt-4 space-y-2">
               {scheduledTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-700/50 px-3 py-2 text-xs">
-                  <span className="text-slate-200">{task.title}</span>
-                  <span className={`${task.status === 'completed' ? 'text-emerald-300' : task.status === 'failed' ? 'text-rose-300' : 'text-slate-400'}`}>
+                <div key={task.id} className="task-row">
+                  <span>{task.title}</span>
+                  <span className={task.status === 'completed' ? 'task-complete' : task.status === 'failed' ? 'task-failed' : ''}>
                     {task.status === 'scheduled' || task.status === 'processing'
                       ? new Date(task.deadline).toLocaleString()
                       : task.status}
@@ -327,36 +341,29 @@ export default function App() {
               ))}
             </div>
           )}
-          {presentationStatus && <p className="text-xs mt-2 text-slate-300">{presentationStatus}</p>}
-        </div>
-      </div>
+              {presentationStatus && <p className="form-message">{presentationStatus}</p>}
+            </section>
 
-      <div className="w-full md:w-1/2 bg-slate-800 p-5 rounded-xl shadow-md border border-slate-700">
-        <h2 className="text-xl font-bold mb-3 text-cyan-400">Activity Log</h2>
-        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+            <section className="activity-panel panel"><div className="section-heading compact"><div><p className="eyebrow">SYSTEM LOG</p><h2>Recent activity</h2></div><span className="pulse-icon">⌁</span></div><div className="activity-list">
           {presentationLog.map((presentation) => (
-            <div key={presentation.id} className="bg-cyan-950/40 p-3 rounded-lg border border-cyan-700/60">
-              <span className="text-xs px-2 py-0.5 rounded font-mono bg-cyan-500/20 text-cyan-300">PRESENTATION</span>
-              <p className="text-sm text-cyan-100 mt-2 font-semibold">{presentation.title}</p>
-              <p className="text-xs text-slate-400 mt-1">Generated {presentation.createdAt}</p>
-              <p className="text-xs text-slate-200 mt-2"><strong>Slide 2:</strong> Scheduled Deliverables</p>
-              <ul className="mt-1 list-disc pl-5 text-xs text-slate-300">
+            <div key={presentation.id} className="activity-item presentation-item"><span className="activity-tag">PRESENTATION</span><p className="activity-title">{presentation.title}</p><p className="activity-meta">Generated {presentation.createdAt}</p><p className="activity-detail"><strong>Slide 2:</strong> Scheduled Deliverables</p><ul className="activity-detail list-disc pl-5">
                 {presentation.items.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <p className="text-xs text-slate-500 mt-2">File: {presentation.filePath}</p>
+              <p className="activity-meta">File: {presentation.filePath}</p>
             </div>
           ))}
           {chatLog.map((log) => (
-            <div key={log.id} className="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
-              <span className={`text-xs px-2 py-0.5 rounded font-mono ${log.action_type === 'email' ? 'bg-amber-500/20 text-amber-300' : 'bg-cyan-500/20 text-cyan-300'}`}>
+            <div key={log.id} className="activity-item"><span className={`activity-tag ${log.action_type === 'email' ? 'email-tag' : ''}`}>
                 {log.action_type.toUpperCase()}
               </span>
-              <p className="text-xs text-slate-400 mt-2"><strong>Input:</strong> {log.user_prompt}</p>
-              <p className="text-xs text-slate-200 mt-1"><strong>Output:</strong> {log.ai_response}</p>
+              <p className="activity-detail"><strong>Input:</strong> {log.user_prompt}</p><p className="activity-detail"><strong>Output:</strong> {log.ai_response}</p>
             </div>
           ))}
+              </div></section>
+          </aside>
         </div>
-      </div>
+      </main>
+      <footer className="footer"><span>TOXIC AI</span><span>Built for better thinking</span><span>© 2026</span></footer>
     </div>
   );
 }
