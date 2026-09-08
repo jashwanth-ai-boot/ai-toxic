@@ -38,6 +38,21 @@ async function saveLog(log) {
   if (error) console.error('Supabase logging unavailable:', error.message);
 }
 
+function cleanAiResponse(text = '') {
+  return text
+    .replace(/^\s{0,3}#{1,6}\s*/gm, '')
+    .replace(/\*\*(.*?)\*\*/gs, '$1')
+    .replace(/__(.*?)__/gs, '$1')
+    .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '$1')
+    .replace(/(?<!_)_([^_\n]+)_(?!_)/g, '$1')
+    .replace(/`{1,3}([^`]+)`{1,3}/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+[.)]\s+/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 // Route 1: Chat with Gemini AI
 app.post('/api/chat', async (req, res) => {
   try {
@@ -46,13 +61,13 @@ app.post('/api/chat', async (req, res) => {
     // Call Gemini API
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
-      contents: prompt,
+      contents: `Answer in clear, natural book-style English. Do not use markdown symbols, headings, bullets, numbered lists, asterisks, hashtags, or code formatting. Use short paragraphs and ordinary sentences. User request: ${prompt}`,
     });
 
-    const aiMessage = response.text;
+    const aiMessage = cleanAiResponse(response.text);
 
-    // Save interaction to Supabase
-    await saveLog({ user_prompt: prompt, ai_response: aiMessage, action_type: 'chat' });
+    // Logging should never hold up the response delivered to the user.
+    void saveLog({ user_prompt: prompt, ai_response: aiMessage, action_type: 'chat' });
 
     res.json({ reply: aiMessage });
   } catch (error) {

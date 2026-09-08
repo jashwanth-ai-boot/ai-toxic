@@ -3,6 +3,7 @@ import WaterBoy3D from './components/WaterBoy3D';
 import Supercar3D from './components/Supercar3D';
 import ChatComposer from './components/ChatComposer';
 import ChatThread from './components/ChatThread';
+import { cleanResponse } from './utils/cleanResponse';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
@@ -183,7 +184,7 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/history`);
       const data = await res.json();
-      if (Array.isArray(data)) setChatLog(data);
+      if (Array.isArray(data)) setChatLog(data.map((log) => ({ ...log, ai_response: cleanResponse(log.ai_response) })));
     } catch (err) {
       console.error('Failed to load logs:', err);
     }
@@ -213,7 +214,7 @@ export default function App() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to generate text');
       setChatLog((currentLogs) => currentLogs.map((log) => (
-        log.id === optimisticId ? { ...log, ai_response: data.reply, pending: false } : log
+        log.id === optimisticId ? { ...log, ai_response: cleanResponse(data.reply), pending: false } : log
       )));
       speak(data.reply);
       setPrompt('');
