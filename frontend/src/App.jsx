@@ -303,7 +303,7 @@ export default function App() {
               disabled={loading}
               className="send-button"
             >
-              {loading ? 'Thinking' : 'Send'} <span>↗</span>
+              {loading ? 'Thinking' : 'Send'} <span className="send-glyph" aria-hidden="true" />
             </button>
           </form>
               {voiceError && <p className="form-message error-message">{voiceError}</p>}
