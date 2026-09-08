@@ -23,6 +23,8 @@ app.get('/', (_req, res) => {
 
 // Connect to external services
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gemini-2.5-flash-lite';
+const CHAT_INSTRUCTIONS = 'Answer in clear, natural book-style English. Be concise and direct. Do not use markdown symbols, headings, bullets, numbered lists, asterisks, hashtags, or code formatting. Use short paragraphs and ordinary sentences. User request: ';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 const transporter = nodemailer.createTransport({
@@ -60,8 +62,9 @@ app.post('/api/chat', async (req, res) => {
 
     // Call Gemini API
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: `Answer in clear, natural book-style English. Do not use markdown symbols, headings, bullets, numbered lists, asterisks, hashtags, or code formatting. Use short paragraphs and ordinary sentences. User request: ${prompt}`,
+      model: CHAT_MODEL,
+      contents: `${CHAT_INSTRUCTIONS}${prompt}`,
+      config: { maxOutputTokens: 384, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
     });
 
     const aiMessage = cleanAiResponse(response.text);
@@ -88,8 +91,9 @@ app.post('/api/chat/stream', async (req, res) => {
   let fullMessage = '';
   try {
     const stream = await ai.models.generateContentStream({
-      model: 'gemini-3.6-flash',
-      contents: `Answer in clear, natural book-style English. Do not use markdown symbols, headings, bullets, numbered lists, asterisks, hashtags, or code formatting. Use short paragraphs and ordinary sentences. User request: ${prompt}`,
+      model: CHAT_MODEL,
+      contents: `${CHAT_INSTRUCTIONS}${prompt}`,
+      config: { maxOutputTokens: 384, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
     });
 
     for await (const chunk of stream) {
