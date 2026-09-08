@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import WaterBoy3D from './components/WaterBoy3D';
 import Supercar3D from './components/Supercar3D';
 
@@ -54,6 +54,8 @@ export function VoiceController({ onSpeechResult }) {
 
 export default function App() {
   const [prompt, setPrompt] = useState('');
+  const [showCreateFormats, setShowCreateFormats] = useState(false);
+  const promptInputRef = useRef(null);
   const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showWaterBoy3D, setShowWaterBoy3D] = useState(false);
@@ -203,6 +205,16 @@ export default function App() {
     }
   };
 
+  const openCreateFormats = () => {
+    setShowCreateFormats(true);
+    promptInputRef.current?.focus();
+  };
+
+  const useCreateFormat = (format) => {
+    setPrompt(format);
+    promptInputRef.current?.focus();
+  };
+
   const handleSendEmail = async (e) => {
     e.preventDefault();
     setEmailStatus('Sending...');
@@ -264,10 +276,12 @@ export default function App() {
         <div className="content-grid">
           <div className="primary-column">
             <section className="composer-panel panel">
-              <div className="section-heading"><div><p className="eyebrow">CONVERSATION</p><h2>What are we making today?</h2></div><span className="command-hint">⌘ ↵</span></div>
+              <div className="section-heading"><div><p className="eyebrow">CONVERSATION</p><h2>What are we making today?</h2></div><div className="conversation-tools"><button type="button" className={`robot-button ${showCreateFormats ? 'is-open' : ''}`} onClick={openCreateFormats} aria-label="Open create formats" title="Open create formats"><span className="robot-antenna" /><span className="robot-eyes"><i /><i /></span><span className="robot-mouth" /></button><span className="command-hint">⌘ ↵</span></div></div>
+              {showCreateFormats && <div className="create-formats"><span>CREATE FORMAT</span><button type="button" onClick={() => useCreateFormat('Write a clear plan for ')}>Plan</button><button type="button" onClick={() => useCreateFormat('Draft a professional message about ')}>Draft</button><button type="button" onClick={() => useCreateFormat('Brainstorm creative ideas for ')}>Ideas</button><button type="button" className="close-formats" onClick={() => setShowCreateFormats(false)} aria-label="Close create formats">×</button></div>}
               <form onSubmit={handleSendChat} className="composer-form">
             <input
               type="text"
+              ref={promptInputRef}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Ask, create, plan, or explore..."
