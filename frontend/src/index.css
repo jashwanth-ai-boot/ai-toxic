@@ -1,6 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
-:root { font-family: 'Manrope', sans-serif; color: #e8eef4; background: #777873; font-synthesis: none; }
+:root {
+	font-family: 'Manrope', sans-serif;
+	font-synthesis: none;
+	color: oklch(0.94 0.015 150);
+	background: oklch(0.54 0.015 105);
+	--clay-50: oklch(0.97 0.012 95); --clay-100: oklch(0.93 0.014 95); --clay-200: oklch(0.87 0.016 95); --clay-300: oklch(0.78 0.017 95); --clay-400: oklch(0.68 0.017 95); --clay-500: oklch(0.58 0.016 95); --clay-600: oklch(0.49 0.014 95); --clay-700: oklch(0.39 0.013 95); --clay-800: oklch(0.28 0.012 95); --clay-900: oklch(0.19 0.011 95);
+	--moss-50: oklch(0.96 0.025 150); --moss-100: oklch(0.9 0.045 150); --moss-200: oklch(0.82 0.065 150); --moss-300: oklch(0.72 0.085 150); --moss-400: oklch(0.62 0.09 150); --moss-500: oklch(0.52 0.085 150); --moss-600: oklch(0.43 0.075 150); --moss-700: oklch(0.34 0.06 150); --moss-800: oklch(0.25 0.045 150); --moss-900: oklch(0.17 0.03 150);
+	--amber-50: oklch(0.97 0.035 78); --amber-100: oklch(0.92 0.07 78); --amber-200: oklch(0.85 0.11 78); --amber-300: oklch(0.77 0.14 72); --amber-400: oklch(0.68 0.15 65); --amber-500: oklch(0.59 0.14 58); --amber-600: oklch(0.49 0.12 52); --amber-700: oklch(0.4 0.09 48); --amber-800: oklch(0.3 0.07 45); --amber-900: oklch(0.21 0.05 42);
+	--danger-400: oklch(0.68 0.14 28); --danger-500: oklch(0.58 0.15 28);
+	--space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
+	--radius-sm: 0.5rem; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-xl: 1.25rem; --radius-2xl: 1.5rem; --radius-pill: 999px;
+	--shadow-1: 0 1px 2px oklch(0.18 0.01 100 / .14); --shadow-2: 0 4px 12px oklch(0.18 0.01 100 / .16), 0 1px 2px oklch(0.18 0.01 100 / .12); --shadow-3: 0 14px 28px oklch(0.18 0.01 100 / .18), 0 2px 5px oklch(0.18 0.01 100 / .14); --shadow-4: 0 24px 48px oklch(0.18 0.01 100 / .2), 0 4px 10px oklch(0.18 0.01 100 / .14); --shadow-5: 0 36px 80px oklch(0.18 0.01 100 / .25), 0 8px 18px oklch(0.18 0.01 100 / .16);
+	--ease-spring: cubic-bezier(0.16, 1, 0.3, 1); --duration-fast: 150ms; --duration-ui: 220ms; --duration-slow: 420ms;
+	--text-xs: 0.6875rem; --text-sm: 0.8125rem; --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.5625rem; --text-hero: clamp(2.75rem, 5.5vw, 4.875rem);
+}
 * { box-sizing: border-box; }
 html, body, #root { min-width: 320px; min-height: 100%; margin: 0; }
 body { background: #777873; }
@@ -15,3 +29,24 @@ button { cursor: pointer; }
 @keyframes float { 50% { transform: translateY(-11px) rotate(35deg); } } @keyframes signal-pulse { 50% { transform: scale(1.55); opacity: .55; } } @keyframes signal-wave { to { transform: scaleY(.35); opacity: .55; } } @media (max-width: 800px) { .topbar, .workspace, .footer { width: min(100% - 32px, 620px); } .topbar-status { display: none; } .workspace { padding-top: 30px; } .hero-panel { display: block; min-height: auto; } .hero-copy { padding: 25px 0 0; } .supercar-stage { height: 290px; } .content-grid { grid-template-columns: 1fr; } .side-column { display: grid; grid-template-columns: 1fr; } .composer-form { flex-wrap: wrap; } .composer-input { flex: 1 1 100%; } .voice-button, .send-button { padding: 12px; } .signal-status { display: none; } .footer { gap: 10px; font-size: 9px; } }
 .composer-input { min-height: 42px; max-height: 150px; resize: none; overflow-y: auto; line-height: 1.5; } .composer-input::placeholder { color: #789087; } .send-button:disabled { cursor: not-allowed; opacity: .48; transform: none; } .send-button.is-stopping { border-color: #df8d7e; outline-color: rgba(223,141,126,.3); background: #d99586; } .stop-glyph { display: inline-block; width: 11px; height: 11px; margin-left: 8px; vertical-align: -1px; border-radius: 3px; background: #3a2522; } .response-skeleton { display: flex; gap: 13px; margin: 20px 13px 0; padding: 17px; border-left: 2px solid #dca36d; border-radius: 0 12px 12px 0; background: rgba(220,163,109,.08); } .skeleton-lines { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 8px; } .skeleton-lines i { display: block; width: 78%; height: 9px; border-radius: 8px; background: linear-gradient(90deg, #304945, #6f887f, #304945); background-size: 200% 100%; animation: skeleton-shimmer 1.4s linear infinite; } .skeleton-lines i:nth-child(2) { width: 92%; animation-delay: .1s; } .skeleton-lines i:nth-child(3) { width: 55%; animation-delay: .2s; } .exchange-answer p { animation: response-reveal .45s ease both; } @keyframes skeleton-shimmer { to { background-position: -200% 0; } } @keyframes response-reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .exchange-prompt { justify-content: flex-end; } .exchange-prompt > div { max-width: 78%; text-align: right; } .exchange-prompt .user-avatar { order: 2; } .exchange-prompt p { color: #d6d2c5; } .exchange-answer { border-radius: 0 14px 14px 0; }
+:where(button, input, textarea):focus-visible { outline: 2px solid var(--amber-300); outline-offset: 3px; }
+.app-shell { container-type: inline-size; background: radial-gradient(ellipse at 75% 5%, color-mix(in oklch, var(--clay-50) 76%, transparent), transparent 24rem), radial-gradient(ellipse at 4% 85%, color-mix(in oklch, var(--clay-600) 65%, transparent), transparent 30rem), linear-gradient(135deg, var(--clay-500), var(--clay-600) 48%, var(--clay-400)); }
+.topbar { position: sticky; top: 0; backdrop-filter: blur(14px); background: color-mix(in oklch, var(--clay-600) 74%, transparent); }
+.panel { border-color: color-mix(in oklch, var(--clay-50) 18%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-4); transition: transform var(--duration-ui) var(--ease-spring), box-shadow var(--duration-ui) var(--ease-spring), border-color var(--duration-ui) var(--ease-spring); }
+.panel:hover { border-color: color-mix(in oklch, var(--moss-200) 45%, transparent); box-shadow: var(--shadow-5); }
+.composer-panel, .tool-panel, .activity-panel { padding: var(--space-8); }
+.composer-form { gap: var(--space-2); padding: var(--space-2); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); }
+.composer-input, .field { border-radius: var(--radius-md); font-size: var(--text-sm); }
+.send-button, .voice-button, .action-button { border-radius: var(--radius-md); transition: transform var(--duration-fast) var(--ease-spring), box-shadow var(--duration-fast) var(--ease-spring), background var(--duration-fast) ease; }
+.send-button:hover:not(:disabled), .action-button:hover, .voice-button:hover:not(:disabled) { box-shadow: var(--shadow-2); }
+.send-button:active:not(:disabled), .action-button:active { transform: translateY(1px) scale(.98); }
+.thread-panel { container-type: inline-size; }
+.response-cursor { display: inline-block; width: 0.45rem; height: 1em; margin-left: .2rem; vertical-align: -.12em; background: var(--moss-300); animation: cursor-blink 1s steps(2, start) infinite; }
+.inline-pending { display: flex; gap: .3rem; min-height: 1.65em; align-items: center; } .inline-pending i { width: .35rem; height: .35rem; border-radius: 50%; background: var(--amber-300); animation: pending-dot 900ms var(--ease-spring) infinite alternate; } .inline-pending i:nth-child(2) { animation-delay: 150ms; } .inline-pending i:nth-child(3) { animation-delay: 300ms; }
+.exchange { animation: message-in var(--duration-slow) var(--ease-spring) both; }
+.exchange-answer { box-shadow: var(--shadow-1); }
+.activity-list, .thread-list { scrollbar-width: thin; scrollbar-color: var(--moss-500) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: var(--radius-pill); background-clip: padding-box; background-color: var(--moss-500); }
+@container (max-width: 700px) { .signal-copy { display: none; } .signal-bars { margin-left: auto; } .composer-panel, .tool-panel, .activity-panel { padding: var(--space-6); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+@keyframes cursor-blink { 50% { opacity: 0; } } @keyframes pending-dot { to { transform: translateY(-3px); opacity: .4; } } @keyframes message-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }

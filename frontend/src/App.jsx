@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import WaterBoy3D from './components/WaterBoy3D';
 import Supercar3D from './components/Supercar3D';
+import ChatComposer from './components/ChatComposer';
+import ChatThread from './components/ChatThread';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
@@ -83,6 +85,17 @@ export default function App() {
 
   useEffect(() => {
     fetchHistory();
+  }, []);
+
+  useEffect(() => {
+    const handleShortcut = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        promptInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
   useEffect(() => {
@@ -185,6 +198,11 @@ export default function App() {
     chatRequestRef.current = new AbortController();
     setChatError('');
     setLoading(true);
+    const optimisticId = `local-${Date.now()}`;
+    setChatLog((currentLogs) => [
+      { id: optimisticId, user_prompt: submittedPrompt, ai_response: '', action_type: 'chat', pending: true },
+      ...currentLogs,
+    ]);
     try {
       const res = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
@@ -194,18 +212,13 @@ export default function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to generate text');
-      setChatLog((currentLogs) => [
-        {
-          id: `local-${Date.now()}`,
-          user_prompt: submittedPrompt,
-          ai_response: data.reply,
-          action_type: 'chat',
-        },
-        ...currentLogs,
-      ]);
+      setChatLog((currentLogs) => currentLogs.map((log) => (
+        log.id === optimisticId ? { ...log, ai_response: data.reply, pending: false } : log
+      )));
       speak(data.reply);
       setPrompt('');
     } catch (err) {
+      setChatLog((currentLogs) => currentLogs.filter((log) => log.id !== optimisticId));
       if (err.name !== 'AbortError') setChatError(err.message || 'The assistant could not respond. Try again.');
       console.error('Chat request failed:', err);
     } finally {
@@ -296,42 +309,8 @@ export default function App() {
         </section>
         <div className="content-grid">
           <div className="primary-column">
-            <section className="composer-panel panel">
-              <div className="signal-header"><div className="signal-orb"><span /></div><div><p className="eyebrow">TOXIC SIGNAL / LIVE</p><p className="signal-copy">Listening for your next move</p></div><div className="signal-bars" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /></div><span className="signal-status">READY</span></div>
-              <div className="section-heading"><div><p className="eyebrow">NEURAL INTAKE</p><h2>What are we making today?</h2></div><div className="conversation-tools"><button type="button" className={`robot-button ${showCreateFormats ? 'is-open' : ''}`} onClick={openCreateFormats} aria-label="Open create formats" title="Open create formats"><span className="robot-antenna" /><span className="robot-eyes"><i /><i /></span><span className="robot-mouth" /></button><span className="command-hint">⌘ ↵</span></div></div>
-              {showCreateFormats && <div className="create-formats"><span>CREATE FORMAT</span><button type="button" onClick={() => useCreateFormat('Write a clear plan for ')}>Plan</button><button type="button" onClick={() => useCreateFormat('Draft a professional message about ')}>Draft</button><button type="button" onClick={() => useCreateFormat('Brainstorm creative ideas for ')}>Ideas</button><button type="button" className="close-formats" onClick={() => setShowCreateFormats(false)} aria-label="Close create formats">×</button></div>}
-              <form onSubmit={handleSendChat} className="composer-form">
-            <textarea
-              ref={promptInputRef}
-              value={prompt}
-              onChange={resizePrompt}
-              rows="1"
-              placeholder="Ask, create, plan, or explore..."
-              className="composer-input"
-            />
-            <button
-              type="button"
-              onClick={startListening}
-              disabled={isListening || loading}
-              aria-label={isListening ? 'Listening' : 'Use voice input'}
-              title={isListening ? 'Listening...' : 'Use voice input'}
-              className={`voice-button ${isListening ? 'is-listening' : ''}`}
-            >
-              {isListening ? '●' : '◉'}
-            </button>
-            <button
-              type={loading ? 'button' : 'submit'}
-              onClick={loading ? stopChat : undefined}
-              disabled={!loading && !prompt.trim()}
-              className={`send-button ${loading ? 'is-stopping' : ''}`}
-            >
-              {loading ? 'Stop' : 'Send'} <span className={loading ? 'stop-glyph' : 'send-glyph'} aria-hidden="true" />
-            </button>
-          </form>
-              {voiceError && <p className="form-message error-message">{voiceError}</p>}
-              {chatError && <p className="form-message error-message"><strong>Response failed.</strong> {chatError}</p>}
-            </section>
-            <section className="thread-panel"><div className="thread-heading"><p className="eyebrow">LIVE THREAD</p><span>{chatLog.length} {chatLog.length === 1 ? 'exchange' : 'exchanges'}</span></div>{chatLog.length === 0 && !loading && <div className="empty-thread"><span className="empty-icon">✦</span><p>Your conversations will appear here.</p><small>Start with a question, a rough idea, or a task.</small></div>}{loading && <div className="response-skeleton" aria-label="Toxic AI is thinking"><span className="avatar ai-avatar">T</span><div className="skeleton-lines"><i /><i /><i /></div></div>}<div className="thread-list">{chatLog.map((log) => <article key={log.id} className="exchange"><div className="exchange-prompt"><span className="avatar user-avatar">YOU</span><div><span className="message-label">PROMPT</span><p>{log.user_prompt}</p></div></div><div className="exchange-answer"><span className="avatar ai-avatar">T</span><div><span className="message-label answer-label">TOXIC / RESPONSE</span><p>{log.ai_response}</p></div></div></article>)}</div></section>
+            <ChatComposer prompt={prompt} promptInputRef={promptInputRef} loading={loading} isListening={isListening} showCreateFormats={showCreateFormats} voiceError={voiceError} chatError={chatError} onPromptChange={resizePrompt} onSubmit={handleSendChat} onStop={stopChat} onVoice={startListening} onOpenFormats={openCreateFormats} onUseFormat={useCreateFormat} onCloseFormats={() => setShowCreateFormats(false)} />
+            <ChatThread chatLog={chatLog} loading={loading} />
           </div>
           <aside className="side-column">
             <section className="tool-panel panel"><div className="section-heading compact"><div><p className="eyebrow">AUTOMATION / 02</p><h2>Send an email</h2></div><span className="tool-number">02</span></div>
