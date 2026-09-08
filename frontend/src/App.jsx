@@ -10,15 +10,35 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001
 export function VoiceController({ onSpeechResult }) {
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState('');
+  const [voiceGender, setVoiceGender] = useState(() => localStorage.getItem('toxicVoiceGender') || 'female');
+  const [isMuted, setIsMuted] = useState(() => localStorage.getItem('toxicVoiceMuted') === 'true');
 
   const speak = (text) => {
-    if (!('speechSynthesis' in window)) return;
+    if (isMuted || !('speechSynthesis' in window)) return;
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
+    const availableVoices = window.speechSynthesis.getVoices();
+    const genderTerms = voiceGender === 'female' ? ['female', 'samantha', 'zira', 'victoria', 'karen'] : ['male', 'daniel', 'alex', 'david', 'tom'];
+    const matchingVoice = availableVoices.find((voice) => voice.lang.startsWith('en') && genderTerms.some((term) => voice.name.toLowerCase().includes(term)));
+    if (matchingVoice) utterance.voice = matchingVoice;
     window.speechSynthesis.speak(utterance);
+  };
+
+  const changeVoiceGender = (gender) => {
+    setVoiceGender(gender);
+    localStorage.setItem('toxicVoiceGender', gender);
+  };
+
+  const toggleMute = () => {
+    setIsMuted((muted) => {
+      const nextMuted = !muted;
+      localStorage.setItem('toxicVoiceMuted', String(nextMuted));
+      if (nextMuted) window.speechSynthesis?.cancel();
+      return nextMuted;
+    });
   };
 
   const startListening = () => {
@@ -52,7 +72,7 @@ export function VoiceController({ onSpeechResult }) {
     }
   };
 
-  return { speak, startListening, isListening, voiceError };
+  return { speak, startListening, isListening, voiceError, voiceGender, changeVoiceGender, isMuted, toggleMute };
 }
 
 export default function App() {
@@ -75,7 +95,7 @@ export default function App() {
   const [taskDeadline, setTaskDeadline] = useState('');
   const [presentationLog, setPresentationLog] = useState([]);
   const [presentationStatus, setPresentationStatus] = useState('');
-  const { speak, startListening, isListening, voiceError } = VoiceController({
+  const { speak, startListening, isListening, voiceError, voiceGender, changeVoiceGender, isMuted, toggleMute } = VoiceController({
     onSpeechResult: setPrompt,
   });
 
@@ -301,7 +321,7 @@ export default function App() {
           <div className="brand-mark" aria-hidden="true"><span /></div>
           <div><p className="brand-name">TOXIC<span> AI</span></p><p className="brand-caption">Your intelligent workbench</p></div>
         </div>
-        <div className="topbar-status"><span className="status-dot" /> Systems online <span className="status-divider" /> v2.4</div>
+        <div className="topbar-actions"><div className="voice-dock" role="group" aria-label="Voice settings"><span className="voice-dock-label">VOICE</span><button type="button" className={voiceGender === 'female' ? 'voice-choice is-selected' : 'voice-choice'} onClick={() => changeVoiceGender('female')} aria-pressed={voiceGender === 'female'}>♀</button><button type="button" className={voiceGender === 'male' ? 'voice-choice is-selected' : 'voice-choice'} onClick={() => changeVoiceGender('male')} aria-pressed={voiceGender === 'male'}>♂</button><button type="button" className={`mute-button ${isMuted ? 'is-muted' : ''}`} onClick={toggleMute} aria-label={isMuted ? 'Unmute assistant voice' : 'Mute assistant voice'} aria-pressed={isMuted}>{isMuted ? '×' : '◖'}</button></div><div className="topbar-status"><span className="status-dot" /> Systems online <span className="status-divider" /> v2.4</div></div>
       </header>
       <main className="workspace">
         <section className="hero-panel">
